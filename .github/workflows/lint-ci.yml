@@ -1,0 +1,47 @@
+name: "@inklyre/oes-lint CI"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/lint/**"
+      - "packages/core/**"
+      - "packages/import-youtube/**"
+      - ".github/workflows/lint-ci.yml"
+  pull_request:
+    paths:
+      - "packages/lint/**"
+      - "packages/core/**"
+      - "packages/import-youtube/**"
+      - ".github/workflows/lint-ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build @inklyre/oes-core
+        run: npm run build --workspace @inklyre/oes-core
+
+      - name: Build @inklyre/oes-import-youtube
+        run: npm run build --workspace @inklyre/oes-import-youtube
+
+      - name: Typecheck
+        run: npm run typecheck --workspace @inklyre/oes-lint
+
+      - name: Lint
+        run: npm run lint --workspace @inklyre/oes-lint
+
+      - name: Test
+        run: npm run test --workspace @inklyre/oes-lint
+
+      - name: Build
+        run: npm run build --workspace @inklyre/oes-lint

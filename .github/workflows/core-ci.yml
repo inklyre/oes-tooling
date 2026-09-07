@@ -1,0 +1,37 @@
+name: "@inklyre/oes-core CI"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/core/**"
+      - ".github/workflows/core-ci.yml"
+  pull_request:
+    paths:
+      - "packages/core/**"
+      - ".github/workflows/core-ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Typecheck
+        run: npm run typecheck --workspace @inklyre/oes-core
+
+      - name: Lint
+        run: npm run lint --workspace @inklyre/oes-core
+
+      - name: Test
+        run: npm run test --workspace @inklyre/oes-core
+
+      - name: Build
+        run: npm run build --workspace @inklyre/oes-core

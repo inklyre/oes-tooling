@@ -1,0 +1,8 @@
+{
+  "oqf_version": "0.1.0",
+  "id": "c2",
+  "type": "numerical",
+  "title": "Pool Candidate 2",
+  "statement": "2 + 2?",
+  "type_config": { "answer": 4 }
+}
