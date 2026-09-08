@@ -5,10 +5,11 @@ updates:
     schedule:
       interval: "daily"
     open-pull-requests-limit: 10
-    # @inklyre/oes-schemas auto-publishes a new patch on every spec change
-    # (see oes/.github/workflows/schemas-publish.yml) — this is what lets a
-    # schema edit reach this repo as a routine dependency-update PR instead
-    # of a manual version bump.
+    # packages/schemas publishes @inklyre/oes-schemas itself (see
+    # .github/workflows/schemas-sync.yml, which polls the spec repo and
+    # publishes a new patch when its schema content changes) — this group
+    # just batches the resulting version-bump PR for packages/core's
+    # dependency on it separately from unrelated dependency updates.
     groups:
       oes-schemas:
         patterns:
