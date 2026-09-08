@@ -1,0 +1,15 @@
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily"
+    open-pull-requests-limit: 10
+    # @inklyre/oes-schemas auto-publishes a new patch on every spec change
+    # (see oes/.github/workflows/schemas-publish.yml) — this is what lets a
+    # schema edit reach this repo as a routine dependency-update PR instead
+    # of a manual version bump.
+    groups:
+      oes-schemas:
+        patterns:
+          - "@inklyre/oes-schemas"

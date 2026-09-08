@@ -1,0 +1,11 @@
+{
+  "name": "oes-tooling",
+  "version": "0.1.0",
+  "description": "Reference tooling for OES (Open Education Standards): types, validation, resolution, linting, and content importers built on the spec at github.com/inklyre/oes.",
+  "private": true,
+  "type": "module",
+  "workspaces": [
+    "packages/*"
+  ],
+  "license": "Apache-2.0"
+}
