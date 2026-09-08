@@ -1,0 +1,52 @@
+name: "create-oes CI"
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "packages/create-oes/**"
+      - "packages/lint/**"
+      - "packages/import-youtube/**"
+      - "packages/core/**"
+      - ".github/workflows/create-oes-ci.yml"
+  pull_request:
+    paths:
+      - "packages/create-oes/**"
+      - "packages/lint/**"
+      - "packages/import-youtube/**"
+      - "packages/core/**"
+      - ".github/workflows/create-oes-ci.yml"
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - run: npm ci
+
+      - name: Build @inklyre/oes-core
+        run: npm run build --workspace @inklyre/oes-core
+
+      - name: Build @inklyre/oes-import-youtube
+        run: npm run build --workspace @inklyre/oes-import-youtube
+
+      - name: Build @inklyre/oes-lint
+        run: npm run build --workspace @inklyre/oes-lint
+
+      - name: Typecheck
+        run: npm run typecheck --workspace create-oes
+
+      - name: Lint
+        run: npm run lint --workspace create-oes
+
+      - name: Test
+        run: npm run test --workspace create-oes
+
+      - name: Build
+        run: npm run build --workspace create-oes

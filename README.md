@@ -18,6 +18,7 @@ spec and its reference tooling in separate repos.
 | [`packages/core`](./packages/core) — [`@inklyre/oes-core`](https://www.npmjs.com/package/@inklyre/oes-core) | Types, `validate()`, and `resolve()` for every OES document type. Everything else here builds on this. |
 | [`packages/lint`](./packages/lint) — [`@inklyre/oes-lint`](https://www.npmjs.com/package/@inklyre/oes-lint) | Cross-file referential-integrity linting (dangling references, duplicate ids, `content_hash` mismatches, and more), plus the `oes` CLI. |
 | [`packages/import-youtube`](./packages/import-youtube) — [`@inklyre/oes-import-youtube`](https://www.npmjs.com/package/@inklyre/oes-import-youtube) | Converts a YouTube playlist into OES content (an OCF module + one lesson per video, OVF video lessons) via the YouTube Data API. Wired into the `oes` CLI's `import youtube` subcommand. |
+| [`packages/create-oes`](./packages/create-oes) — [`create-oes`](https://www.npmjs.com/package/create-oes) | Scaffolds a minimal, valid OES course (one course/module/lesson/set/question) via `npm create oes`. Unscoped on purpose — that's what the `npm create oes` shorthand requires. |
 
 `packages/schemas` is unlike the others: `oes` (the spec repo) has no
 publish pipeline of its own, on purpose — publish credentials don't
@@ -38,6 +39,7 @@ npm run test --workspaces
 ## CLI
 
 ```bash
+npm create oes my-course
 npx oes lint ./my-course
 npx oes import youtube "https://www.youtube.com/playlist?list=..." --api-key <key>
 ```
