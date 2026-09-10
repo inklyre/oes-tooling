@@ -1,15 +1,12 @@
 {
-  "name": "@inklyre/oes-lint",
-  "version": "0.2.0",
-  "description": "Referential-integrity linting for OES content: dangling references, duplicate ids, pool select bounds, answer cross-references, answer_key file existence, and content_hash mismatches.",
+  "name": "@inklyre/oes-authoring",
+  "version": "0.1.0",
+  "description": "The `.oes.md` authoring format for OES questions: compile Markdown-with-frontmatter into canonical question.json, and decompile canonical JSON back into authorable Markdown.",
   "license": "Apache-2.0",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "bin": {
-    "oes": "dist/cli.js"
-  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -30,9 +27,8 @@
     "test:watch": "vitest"
   },
   "dependencies": {
-    "@inklyre/oes-authoring": "^0.1.0",
     "@inklyre/oes-core": "^0.3.0",
-    "@inklyre/oes-import-youtube": "^0.1.0"
+    "yaml": "^2.9.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.18.0",

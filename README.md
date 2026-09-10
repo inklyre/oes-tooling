@@ -17,6 +17,7 @@ spec and its reference tooling in separate repos.
 | [`packages/schemas`](./packages/schemas) — [`@inklyre/oes-schemas`](https://www.npmjs.com/package/@inklyre/oes-schemas) | The JSON Schemas for OES, fetched from the `oes` spec repo and packaged for npm. |
 | [`packages/core`](./packages/core) — [`@inklyre/oes-core`](https://www.npmjs.com/package/@inklyre/oes-core) | Types, `validate()`, and `resolve()` for every OES document type. Everything else here builds on this. |
 | [`packages/lint`](./packages/lint) — [`@inklyre/oes-lint`](https://www.npmjs.com/package/@inklyre/oes-lint) | Cross-file referential-integrity linting (dangling references, duplicate ids, `content_hash` mismatches, and more), plus the `oes` CLI. |
+| [`packages/authoring`](./packages/authoring) — [`@inklyre/oes-authoring`](https://www.npmjs.com/package/@inklyre/oes-authoring) | The `.oes.md` authoring format for questions — Markdown prose with YAML frontmatter — and the compiler both ways. Wired into the `oes` CLI's `compile`/`decompile` subcommands. Hand-written `question.json` remains fully supported; this is an alternative, not a replacement. |
 | [`packages/import-youtube`](./packages/import-youtube) — [`@inklyre/oes-import-youtube`](https://www.npmjs.com/package/@inklyre/oes-import-youtube) | Converts a YouTube playlist into OES content (an OCF module + one lesson per video, OVF video lessons) via the YouTube Data API. Wired into the `oes` CLI's `import youtube` subcommand. |
 | [`packages/create-oes`](./packages/create-oes) — [`create-oes`](https://www.npmjs.com/package/create-oes) | Scaffolds a minimal, valid OES course (one course/module/lesson/set/question) via `npm create oes`. Unscoped on purpose — that's what the `npm create oes` shorthand requires. |
 | [`packages/renderer`](./packages/renderer) — [`@inklyre/oes-renderer`](https://www.npmjs.com/package/@inklyre/oes-renderer) | Headless React components rendering OES content — a video lesson and a course outline to start. Takes already-resolved data from `@inklyre/oes-core`; no bundled CSS, no fetching. |
@@ -42,6 +43,8 @@ npm run test --workspaces
 ```bash
 npm create oes my-course
 npx oes lint ./my-course
+npx oes compile ./my-course/sets/quiz-1     # .oes.md -> question.json
+npx oes decompile ./my-course/sets/quiz-1   # question.json -> .oes.md
 npx oes import youtube "https://www.youtube.com/playlist?list=..." --api-key <key>
 ```
 

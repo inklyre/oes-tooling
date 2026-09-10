@@ -53,7 +53,7 @@ npm create oes [target-dir] [--id <id>] [--title <title>] [--author <name>]...
 Every generated document carries a `$schema` field pointing at its
 current JSON Schema, so opening any of them in an editor with JSON Schema
 support gets inline validation/autocomplete for free — see
-[Editor Setup](https://inklyre.github.io/oes/editor-setup).
+[Editor Setup](https://oes.inklyre.org/editor-setup).
 
 After writing files, the CLI runs [`@inklyre/oes-lint`](../lint)'s
 `lintCourse` against the output before reporting success — the same

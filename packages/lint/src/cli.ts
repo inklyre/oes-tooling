@@ -1,7 +1,14 @@
-import { existsSync } from "node:fs";
+import { existsSync, statSync } from "node:fs";
 import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { fsSource } from "@inklyre/oes-core";
+import {
+  AUTHORED_EXT,
+  compileFile,
+  decompileFile,
+  findAuthored,
+  findQuestions,
+} from "@inklyre/oes-authoring";
 import {
   fetchYoutubePlaylist,
   generateFromPlan,
@@ -24,6 +31,8 @@ function isEntryFile(value: string): value is EntryFile {
 function printUsage(): void {
   console.error("Usage:");
   console.error("  oes lint <path> [--entry course.json|set.json|module.json|lesson.json] [--json]");
+  console.error("  oes compile <file.oes.md|dir> [--check] [--json]");
+  console.error("  oes decompile <question.json|dir> [--check] [--json]");
   console.error("  oes import youtube <playlist-url> [--api-key <key>] [--out <dir>] [--plan <file>] [--json]");
   console.error("  oes import youtube --from-plan <file> [--out <dir>] [--force] [--json]");
 }
@@ -104,6 +113,94 @@ async function runLintCommand(args: string[]): Promise<void> {
     printHuman(dir, entry, result);
   }
   process.exitCode = result.ok ? 0 : 1;
+}
+
+interface TransformArgs {
+  path?: string;
+  check: boolean;
+  json: boolean;
+}
+
+function parseTransformArgs(args: string[]): TransformArgs | undefined {
+  const parsed: TransformArgs = { check: false, json: false };
+  for (const arg of args) {
+    if (arg === "--check") parsed.check = true;
+    else if (arg === "--json") parsed.json = true;
+    else if (parsed.path === undefined && !arg.startsWith("--")) parsed.path = arg;
+    else return undefined;
+  }
+  return parsed.path === undefined ? undefined : parsed;
+}
+
+/**
+ * `compile` and `decompile` are the same shape — expand a path to a list of
+ * files, run one transform over each, and report what changed — so they
+ * share a driver and differ only in how they find files and what they do
+ * with one.
+ */
+async function runTransform(
+  args: string[],
+  verb: "compile" | "decompile",
+  find: (dir: string) => Promise<string[]>,
+  transform: (file: string, options: { check: boolean }) => Promise<{ written: string[]; unchanged: string[] }>,
+): Promise<void> {
+  const parsed = parseTransformArgs(args);
+  if (!parsed || parsed.path === undefined) {
+    printUsage();
+    process.exitCode = 1;
+    return;
+  }
+
+  let files: string[];
+  try {
+    files = statSync(parsed.path).isDirectory() ? await find(parsed.path) : [parsed.path];
+  } catch {
+    console.error(`No such file or directory: ${parsed.path}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  if (files.length === 0) {
+    const what = verb === "compile" ? `*${AUTHORED_EXT} files` : "question.json files";
+    console.error(`No ${what} found under ${parsed.path}`);
+    process.exitCode = 1;
+    return;
+  }
+
+  const written: string[] = [];
+  const unchanged: string[] = [];
+  const failed: { file: string; message: string }[] = [];
+
+  for (const file of files) {
+    try {
+      const result = await transform(file, { check: parsed.check });
+      written.push(...result.written);
+      unchanged.push(...result.unchanged);
+    } catch (cause) {
+      failed.push({ file, message: cause instanceof Error ? cause.message : String(cause) });
+    }
+  }
+
+  const ok = failed.length === 0 && (!parsed.check || written.length === 0);
+
+  if (parsed.json) {
+    console.log(JSON.stringify({ ok, written, unchanged, failed }, null, 2));
+  } else {
+    for (const failure of failed) {
+      console.error(`error  ${failure.file}: ${failure.message}`);
+    }
+    if (parsed.check) {
+      for (const path of written) console.log(`stale  ${path}`);
+      if (ok) console.log(`✓ ${unchanged.length} file(s) up to date`);
+      else if (failed.length === 0) console.log(`\n${written.length} file(s) would change — re-run without --check`);
+    } else {
+      for (const path of written) console.log(`wrote  ${path}`);
+      if (failed.length === 0) {
+        console.log(`\n${written.length} written, ${unchanged.length} unchanged`);
+      }
+    }
+  }
+  process.exitCode = ok ? 0 : 1;
 }
 
 interface ImportYoutubeArgs {
@@ -242,6 +339,16 @@ async function main(): Promise<void> {
   const [command, ...rest] = process.argv.slice(2);
   if (command === "lint") {
     await runLintCommand(rest);
+    return;
+  }
+  if (command === "compile") {
+    await runTransform(rest, "compile", findAuthored, (file, options) =>
+      compileFile(file, options).then(({ written, unchanged }) => ({ written, unchanged })),
+    );
+    return;
+  }
+  if (command === "decompile") {
+    await runTransform(rest, "decompile", findQuestions, decompileFile);
     return;
   }
   if (command === "import" && rest[0] === "youtube") {

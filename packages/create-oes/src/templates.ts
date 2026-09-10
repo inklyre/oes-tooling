@@ -3,7 +3,7 @@
  * Points at the live docs site, matching oes's own editor-setup.md — not
  * the $id namespace inside the schema files, which isn't itself fetchable.
  */
-const SCHEMA_BASE = "https://inklyre.github.io/oes/schemas";
+const SCHEMA_BASE = "https://oes.inklyre.org/schemas";
 
 export interface ScaffoldOptions {
   id: string;

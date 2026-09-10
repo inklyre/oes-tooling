@@ -95,8 +95,8 @@ async function main(): Promise<void> {
     }
     console.log("\nNext steps:");
     if (result.outDir !== ".") console.log(`  cd ${result.outDir}`);
-    console.log("  Read https://inklyre.github.io/oes/specs/ocf/getting-started to see what each file does.");
-    console.log("  Read https://inklyre.github.io/oes/editor-setup for inline validation/autocomplete in your editor.");
+    console.log("  Read https://oes.inklyre.org/specs/ocf/getting-started to see what each file does.");
+    console.log("  Read https://oes.inklyre.org/editor-setup for inline validation/autocomplete in your editor.");
   }
   process.exitCode = lint.ok ? 0 : 1;
 }
