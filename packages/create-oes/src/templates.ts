@@ -60,16 +60,16 @@ export function buildScaffold(options: ScaffoldOptions): ScaffoldFile[] {
   };
 
   const set: Record<string, unknown> = {
-    $schema: `${SCHEMA_BASE}/opf/v0.2.0/set.schema.json`,
-    opf_version: "0.2.0",
+    $schema: `${SCHEMA_BASE}/opf/v0.3.0/set.schema.json`,
+    opf_version: "0.3.0",
     id: "quiz",
     title: "Quick Check",
     questions: [{ id: "example-question", path: "questions/example-question.json", points: 10 }],
   };
 
   const question: Record<string, unknown> = {
-    $schema: `${SCHEMA_BASE}/oqf/v0.1.0/question.schema.json`,
-    oqf_version: "0.1.0",
+    $schema: `${SCHEMA_BASE}/oqf/v0.2.0/question.schema.json`,
+    oqf_version: "0.2.0",
     id: "example-question",
     type: "mcq",
     title: "Example Question",

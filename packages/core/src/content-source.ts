@@ -23,6 +23,16 @@ export interface ContentSource {
    * OES). Returns a new source rooted at that document's own directory.
    */
   fetch(location: string): Promise<FetchedDocument>;
+  /**
+   * Fetch the raw text at `location` without parsing it — for prose
+   * (`statement.md`, `content.md`, `stimulus.md`) and for an answer key
+   * that isn't JSON.
+   *
+   * {@link fetch} parses unconditionally, so using it for a non-JSON file
+   * reports a missing file when the file is present and perfectly valid.
+   * Anything that isn't a JSON document belongs here instead.
+   */
+  fetchText(location: string): Promise<string>;
   /** A human-readable identifier for error messages. */
   readonly label: string;
 }
@@ -31,7 +41,7 @@ function isUrl(location: string): boolean {
   return /^https?:\/\//i.test(location);
 }
 
-async function fetchUrlJson(url: string): Promise<FetchedDocument> {
+async function fetchUrlText(url: string): Promise<string> {
   let res: Response;
   try {
     res = await fetch(url);
@@ -41,7 +51,11 @@ async function fetchUrlJson(url: string): Promise<FetchedDocument> {
   if (!res.ok) {
     throw new Error(`Failed to fetch ${url}: ${res.status} ${res.statusText}`);
   }
-  const raw = await res.text();
+  return res.text();
+}
+
+async function fetchUrlJson(url: string): Promise<FetchedDocument> {
+  const raw = await fetchUrlText(url);
   let data: unknown;
   try {
     data = JSON.parse(raw);
@@ -59,8 +73,15 @@ class FetchContentSource implements ContentSource {
   }
 
   fetch(location: string): Promise<FetchedDocument> {
-    const url = isUrl(location) ? location : new URL(location, this.baseUrl).toString();
-    return fetchUrlJson(url);
+    return fetchUrlJson(this.resolve(location));
+  }
+
+  fetchText(location: string): Promise<string> {
+    return fetchUrlText(this.resolve(location));
+  }
+
+  private resolve(location: string): string {
+    return isUrl(location) ? location : new URL(location, this.baseUrl).toString();
   }
 }
 
@@ -71,15 +92,20 @@ class NodeFsContentSource implements ContentSource {
     return this.dir;
   }
 
-  async fetch(location: string): Promise<FetchedDocument> {
-    if (isUrl(location)) return fetchUrlJson(location);
+  async fetchText(location: string): Promise<string> {
+    if (isUrl(location)) return fetchUrlText(location);
     const fullPath = join(this.dir, location);
-    let raw: string;
     try {
-      raw = await readFile(fullPath, "utf8");
+      return await readFile(fullPath, "utf8");
     } catch (cause) {
       throw new Error(`Failed to read ${fullPath}`, { cause });
     }
+  }
+
+  async fetch(location: string): Promise<FetchedDocument> {
+    if (isUrl(location)) return fetchUrlJson(location);
+    const fullPath = join(this.dir, location);
+    const raw = await this.fetchText(location);
     let data: unknown;
     try {
       data = JSON.parse(raw);

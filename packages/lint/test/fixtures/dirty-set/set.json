@@ -1,19 +1,40 @@
 {
-  "opf_version": "0.2.0",
+  "opf_version": "0.3.0",
   "id": "dirty-set",
   "title": "Dirty Set",
   "questions": [
-    { "id": "dup", "path": "questions/dup-a" },
-    { "id": "dup", "path": "questions/dup-b" },
-    { "id": "order-q", "path": "questions/order-q" },
-    { "id": "match-q", "path": "questions/match-q" },
-    { "id": "keyed-q", "path": "questions/keyed-q" },
+    {
+      "id": "dup",
+      "path": "questions/dup-a"
+    },
+    {
+      "id": "dup",
+      "path": "questions/dup-b"
+    },
+    {
+      "id": "order-q",
+      "path": "questions/order-q"
+    },
+    {
+      "id": "match-q",
+      "path": "questions/match-q"
+    },
+    {
+      "id": "keyed-q",
+      "path": "questions/keyed-q"
+    },
     {
       "id": "pool1",
       "select": 5,
       "from": [
-        { "id": "c1", "path": "pool/c1" },
-        { "id": "c1", "path": "pool/c2" }
+        {
+          "id": "c1",
+          "path": "pool/c1"
+        },
+        {
+          "id": "c1",
+          "path": "pool/c2"
+        }
       ]
     }
   ]

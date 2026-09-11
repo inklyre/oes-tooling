@@ -11,9 +11,11 @@ import type {
   OcfVideoLessonRef,
 } from "./types/ocf.js";
 import type { OafArticle } from "./types/oaf.js";
-import type { OpfPoolCandidate, OpfSet } from "./types/opf.js";
-import { isOpfPoolEntry } from "./types/opf.js";
+import type { OpfPoolCandidate, OpfQuestionEntry, OpfSet } from "./types/opf.js";
+import { isOpfGroupEntry, isOpfPoolEntry } from "./types/opf.js";
 import type { OqfQuestion, OqfStimulus } from "./types/oqf.js";
+import type { Prose } from "./types/common.js";
+import { isProseFile } from "./types/common.js";
 import type { OrfResource } from "./types/orf.js";
 import type { OvfVideo } from "./types/ovf.js";
 import {
@@ -46,6 +48,7 @@ export interface ResolveResult<T> {
   errors: ResolveError[];
 }
 
+/** An article with its prose inlined — `content` is always a string here. */
 export interface ResolvedArticle {
   ref: OcfArticleRef;
   article: OafArticle;
@@ -64,6 +67,13 @@ export interface ResolvedResource {
 export interface ResolvedQuestion {
   /** The entry's own `id` within the set (a direct entry's id, or a pool candidate's id). */
   id: string;
+  /**
+   * The question, with prose inlined: `statement` is **always a string**
+   * here, never a `{file}` reference, and the same holds for any
+   * stimulus `content`. Resolving a reference the caller would otherwise
+   * have to fetch itself is the whole job — leaving prose unresolved
+   * made every consumer re-implement it.
+   */
   question: OqfQuestion;
   stimulus?: OqfStimulus;
   /**
@@ -129,6 +139,31 @@ function refLocation(path: string | undefined, url: string | undefined, fileName
  * is recorded — per the error-handling contract, this never throws or
  * aborts resolution, it only annotates `errors`.
  */
+/**
+ * Replace a `{file}` prose reference with the file's text.
+ *
+ * Uses {@link ContentSource.fetchText} rather than `fetch`, since prose is
+ * Markdown and `fetch` parses as JSON unconditionally. A `content_hash` on
+ * the reference is verified here — that is the only place a separate prose
+ * file's bytes can be checked at all.
+ */
+async function inlineProse(
+  prose: Prose | undefined,
+  source: ContentSource,
+  at: string,
+  errors: ResolveError[]
+): Promise<Prose | undefined> {
+  if (prose === undefined || !isProseFile(prose)) return prose;
+  try {
+    const text = await source.fetchText(prose.file);
+    await checkContentHash(text, prose.content_hash, at, errors);
+    return text;
+  } catch (cause) {
+    errors.push({ at, message: `Failed to read prose file "${prose.file}"`, cause });
+    return prose;
+  }
+}
+
 async function checkContentHash(
   raw: string,
   contentHash: string | undefined,
@@ -149,14 +184,18 @@ async function resolveArticle(
   errors: ResolveError[]
 ): Promise<ResolvedArticle | undefined> {
   try {
-    const { data, raw } = await source.fetch(refLocation(ref.path, ref.article_url, "article.json"));
+    const { data, raw, source: articleSource } = await source.fetch(refLocation(ref.path, ref.article_url, "article.json"));
     await checkContentHash(raw, ref.content_hash, at, errors);
     const result = validateOafArticle(data);
     if (!result.valid) {
       errors.push({ at, message: "article.json failed schema validation", cause: result.errors });
       return undefined;
     }
-    return { ref, article: result.data! };
+    const article = {
+      ...result.data!,
+      content: (await inlineProse(result.data!.content, articleSource, `${at}.content`, errors)) as OafArticle["content"],
+    };
+    return { ref, article };
   } catch (cause) {
     errors.push({ at, message: `Failed to resolve article "${ref.id}"`, cause });
     return undefined;
@@ -221,7 +260,10 @@ async function resolveQuestionAt(
       errors.push({ at, message: "question.json failed schema validation", cause: result.errors });
       return undefined;
     }
-    const question = result.data!;
+    const question = {
+      ...result.data!,
+      statement: (await inlineProse(result.data!.statement, questionSource, `${at}.statement`, errors)) as OqfQuestion["statement"],
+    } as OqfQuestion;
     let stimulus: OqfStimulus | undefined;
     if (question.stimulus) {
       const stimulusLocation = refLocation(question.stimulus.path, question.stimulus.stimulus_url, "stimulus.json");
@@ -230,7 +272,10 @@ async function resolveQuestionAt(
         await checkContentHash(fetched.raw, question.stimulus.content_hash, `${at}.stimulus`, errors);
         const stimulusResult = validateOqfStimulus(fetched.data);
         if (stimulusResult.valid) {
-          stimulus = stimulusResult.data;
+          stimulus = {
+            ...stimulusResult.data!,
+            content: await inlineProse(stimulusResult.data!.content, fetched.source, `${at}.stimulus.content`, errors),
+          };
         } else {
           errors.push({ at: `${at}.stimulus`, message: "stimulus.json failed schema validation", cause: stimulusResult.errors });
         }
@@ -269,22 +314,31 @@ async function resolveSetAt(
   const setSource = fetched.source;
 
   const questions: ResolvedQuestion[] = [];
-  for (let i = 0; i < set.questions.length; i++) {
-    const entry = set.questions[i]!;
-    const entryAt = `${at}.questions[${i}]`;
-    if (isOpfPoolEntry(entry)) {
-      for (let j = 0; j < entry.from.length; j++) {
-        const candidate: OpfPoolCandidate = entry.from[j]!;
-        const location = refLocation(candidate.path, candidate.question_url, "question.json");
-        const resolved = await resolveQuestionAt(setSource, location, candidate.id, candidate.content_hash, `${entryAt}.from[${j}]`, errors);
+
+  // Every question reachable from the set, in document order: a group's
+  // parts are resolved in place, so a consumer that ignores grouping still
+  // sees each part exactly once and in the right order.
+  const resolveEntries = async (entries: OpfQuestionEntry[], prefix: string): Promise<void> => {
+    for (let i = 0; i < entries.length; i++) {
+      const entry = entries[i]!;
+      const entryAt = `${prefix}[${i}]`;
+      if (isOpfGroupEntry(entry)) {
+        await resolveEntries(entry.parts, `${entryAt}.parts`);
+      } else if (isOpfPoolEntry(entry)) {
+        for (let j = 0; j < entry.from.length; j++) {
+          const candidate: OpfPoolCandidate = entry.from[j]!;
+          const location = refLocation(candidate.path, candidate.question_url, "question.json");
+          const resolved = await resolveQuestionAt(setSource, location, candidate.id, candidate.content_hash, `${entryAt}.from[${j}]`, errors);
+          if (resolved) questions.push(resolved);
+        }
+      } else {
+        const location = refLocation(entry.path, entry.question_url, "question.json");
+        const resolved = await resolveQuestionAt(setSource, location, entry.id, entry.content_hash, entryAt, errors);
         if (resolved) questions.push(resolved);
       }
-    } else {
-      const location = refLocation(entry.path, entry.question_url, "question.json");
-      const resolved = await resolveQuestionAt(setSource, location, entry.id, entry.content_hash, entryAt, errors);
-      if (resolved) questions.push(resolved);
     }
-  }
+  };
+  await resolveEntries(set.questions, `${at}.questions`);
 
   return { set, questions };
 }

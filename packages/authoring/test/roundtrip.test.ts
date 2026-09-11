@@ -4,8 +4,8 @@ import { compileQuestion, decompileQuestion, RoundTripError } from "../src/index
 
 function question(overrides: Record<string, unknown> = {}): OqfQuestion {
   return {
-    $schema: "https://oes.inklyre.org/schemas/oqf/v0.1.0/question.schema.json",
-    oqf_version: "0.1.0",
+    $schema: "https://oes.inklyre.org/schemas/oqf/v0.2.0/question.schema.json",
+    oqf_version: "0.2.0",
     id: "q",
     type: "mcq",
     title: "A question",

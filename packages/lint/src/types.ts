@@ -7,7 +7,11 @@ export type LintRule =
   | "duplicate-id"
   | "pool-select-bounds"
   | "dangling-answer-reference"
-  | "answer-key-file-missing";
+  | "answer-key-file-missing"
+  | "group-answer-any-bounds"
+  | "group-single-part"
+  | "group-nesting-depth"
+  | "group-stimulus-mismatch";
 
 export interface LintIssue {
   rule: LintRule;

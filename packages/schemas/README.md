@@ -3,6 +3,19 @@
 The JSON Schemas for [OES](https://github.com/inklyre/oes) (Open Education Standards),
 packaged for npm consumption.
 
+## Building against a spec branch
+
+`scripts/fetch-schemas.mjs` reads from `inklyre/oes@main` by default. When
+a schema change is still on a branch, point it there instead:
+
+```bash
+OES_SPEC_REF=dev npm run fetch-schemas
+```
+
+Without this, a schema change on a branch cannot be built against until it
+merges — which blocks the toolchain on the very merge the change is meant
+to justify.
+
 ## How this package gets its content
 
 Unlike this repo's other packages, this one has no local copy of its

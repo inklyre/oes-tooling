@@ -1,4 +1,4 @@
-import type { Reference, Source, Status } from "./common.js";
+import type { Prose, ProseFile, Reference, Source, Status } from "./common.js";
 import type { ExactlyOne } from "./util.js";
 
 /** Shared by `match`'s `left`/`right` columns and `order`'s `items`. */
@@ -53,8 +53,16 @@ export interface OqfMsqConfig {
 export interface OqfFillBlankBlank {
   id: string;
   type: "text" | "expression" | "number";
-  /** Absent when secured via a top-level `answer_key` (keyed by `id` there instead). */
-  answer?: string;
+  /**
+   * One accepted answer, or a list of them — a response matching ANY
+   * member is correct, which is how equivalent spellings of the same
+   * answer are handled (`"O(log n)"`, `"O(logn)"`, `"Θ(log n)"`).
+   * Matching is exact against each member, with {@link case_sensitive}
+   * applied uniformly; there is no fuzzy matching, so a blank is only as
+   * forgiving as its list. Absent when secured via a top-level
+   * `answer_key` (keyed by `id` there instead).
+   */
+  answer?: string | string[];
   case_sensitive?: boolean;
 }
 
@@ -156,8 +164,13 @@ export interface OqfDiagramLabel {
 }
 
 export interface OqfDiagramConfig {
-  /** Path, relative to the question's folder, to the image asset. */
-  image: string;
+  /**
+   * Path, relative to the question's folder, to the image asset — or the
+   * object form carrying that path plus a `content_hash`, for a question
+   * fetched by URL whose image would otherwise be resolved relative to
+   * that URL and left unverified.
+   */
+  image: string | ProseFile;
   labels: OqfDiagramLabel[];
 }
 
@@ -210,11 +223,19 @@ export type OqfQuestion =
 
 export type OqfQuestionType = OqfQuestion["type"];
 
-/** `stimulus.json` — a shared prompt referenced by one or more questions. */
+/** `stimulus.json` — a shared prompt referenced by one or more questions (OQF v0.2.0). */
 export interface OqfStimulus {
   oqf_version: string;
   id: string;
   title?: string;
+  /**
+   * The shared prompt. Optional — a stimulus that is purely an image or
+   * dataset in `assets/` has no prose at all. Prefer the inline form for
+   * a stimulus referenced by `stimulus_url`: this is the document OES
+   * most actively recommends hosting independently, so it is where an
+   * uncovered `content_hash` does the most damage.
+   */
+  content?: Prose;
   authors?: string[];
   license?: string;
   tags?: string[];

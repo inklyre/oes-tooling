@@ -1,5 +1,28 @@
 import type { ExactlyOne } from "./util.js";
 
+/**
+ * A Markdown prose field, held inline or pointed at a sibling file.
+ *
+ * The same shape everywhere OES carries prose — OQF's `statement`, OAF's
+ * `content`, an OQF stimulus's `content`. Choose by reviewability rather
+ * than length: prose you would want to review line by line belongs in a
+ * file. Prefer the inline form for anything referenced by URL, since a
+ * `content_hash` over the referencing document does not cover a separate
+ * file's bytes unless that file carries its own.
+ */
+export type Prose = string | ProseFile;
+
+export interface ProseFile {
+  /** Path relative to the owning document's folder. */
+  file: string;
+  content_hash?: string;
+}
+
+/** Narrow a {@link Prose} value to its file-reference form. */
+export function isProseFile(prose: Prose): prose is ProseFile {
+  return typeof prose === "object" && prose !== null && typeof prose.file === "string";
+}
+
 /** Content lifecycle stage. Absent is equivalent to `"published"`. */
 export type Status = "draft" | "published" | "deprecated";
 

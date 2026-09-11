@@ -45,3 +45,14 @@ describe("lintLesson", () => {
     expect(result.issues[0]).toMatchObject({ rule: "dangling-reference", at: "lesson.items[1]" });
   });
 });
+
+describe("answer_key file existence", () => {
+  it("accepts a non-JSON answer key that exists", async () => {
+    // Regression: the check used source.fetch(), which parses JSON
+    // unconditionally, so a perfectly valid Markdown rubric was reported
+    // as `answer-key-file-missing`.
+    const result = await lintSet(fsSource(`${fixturesDir}/markdown-answer-key`));
+    expect(result.issues).toEqual([]);
+    expect(result.ok).toBe(true);
+  });
+});

@@ -5,11 +5,11 @@
 // the published package needs no runtime fetch and no filesystem access
 // to the spec repo. Run `npm run fetch-schemas` after cloning if vendor/
 // is empty.
-import oafArticleSchema from "../vendor/oaf/v0.1.0/article.schema.json";
+import oafArticleSchema from "../vendor/oaf/v0.2.0/article.schema.json";
 import ocfCourseSchema from "../vendor/ocf/v0.3.0/course.schema.json";
-import opfSetSchema from "../vendor/opf/v0.2.0/set.schema.json";
-import oqfQuestionSchema from "../vendor/oqf/v0.1.0/question.schema.json";
-import oqfStimulusSchema from "../vendor/oqf/v0.1.0/stimulus.schema.json";
+import opfSetSchema from "../vendor/opf/v0.3.0/set.schema.json";
+import oqfQuestionSchema from "../vendor/oqf/v0.2.0/question.schema.json";
+import oqfStimulusSchema from "../vendor/oqf/v0.2.0/stimulus.schema.json";
 import orfResourceSchema from "../vendor/orf/v0.1.0/resource.schema.json";
 import ovfVideoSchema from "../vendor/ovf/v0.1.0/video.schema.json";
 

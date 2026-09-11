@@ -84,3 +84,31 @@ describe("resolveCourse", () => {
     expect(errors[0]!.at).toBe("course");
   });
 });
+
+describe("prose inlining", () => {
+  it("resolves an article's content to a string, never a file reference", async () => {
+    const { data, errors } = await resolveCourse(fsSource(`${fixturesDir}/course`));
+    expect(errors).toEqual([]);
+
+    const article = data!.modules[0]!.lessons[0]!.items[0]!;
+    if (article.type !== "article") throw new Error("expected article");
+    expect(typeof article.article.content).toBe("string");
+    expect(article.article.content).toContain("Intro article prose");
+  });
+
+  it("resolves a stimulus's content to a string", async () => {
+    const { data } = await resolveCourse(fsSource(`${fixturesDir}/course`));
+    const item = data!.modules[0]!.lessons[0]!.items[1]!;
+    if (item.type !== "practice_set") throw new Error("expected practice_set");
+
+    const stimulus = item.questions[0]!.stimulus;
+    expect(typeof stimulus?.content).toBe("string");
+    expect(stimulus?.content).toContain("shared prompt");
+  });
+
+  it("reports a missing prose file as an error rather than throwing", async () => {
+    const { errors } = await resolveLesson(fsSource(`${fixturesDir}/missing-prose`));
+    expect(errors).toHaveLength(1);
+    expect(errors[0]!.message).toMatch(/Failed to read prose file "content\.md"/);
+  });
+});

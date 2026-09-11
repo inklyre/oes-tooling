@@ -20,9 +20,9 @@ describe("compileQuestion", () => {
   it("supplies the fields an author never types", () => {
     const { question } = compileQuestion(MCQ, { id: "binary-search" });
     expect(question.id).toBe("binary-search");
-    expect(question.oqf_version).toBe("0.1.0");
+    expect(question.oqf_version).toBe("0.2.0");
     expect((question as { $schema?: string }).$schema).toBe(
-      "https://oes.inklyre.org/schemas/oqf/v0.1.0/question.schema.json",
+      "https://oes.inklyre.org/schemas/oqf/v0.2.0/question.schema.json",
     );
   });
 

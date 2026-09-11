@@ -8,17 +8,23 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
-const SPEC_REPO_RAW = "https://raw.githubusercontent.com/inklyre/oes/main";
+// The spec repo ref to read from. Defaults to main, which is what CI and
+// the publish pipeline use. Override with OES_SPEC_REF when a schema
+// change is still on a branch — otherwise this package cannot be built
+// against it until that branch merges, which blocks the whole toolchain
+// on a merge that the schema change itself is meant to justify.
+const SPEC_REF = process.env.OES_SPEC_REF || "main";
+const SPEC_REPO_RAW = `https://raw.githubusercontent.com/inklyre/oes/${SPEC_REF}`;
 const VENDOR_ROOT = fileURLToPath(new URL("../vendor", import.meta.url));
 
 // Kept in sync by hand with schemas/ in the spec repo — the same set of
 // files src/index.ts imports by name.
 const SCHEMA_PATHS = [
-  "schemas/oaf/v0.1.0/article.schema.json",
+  "schemas/oaf/v0.2.0/article.schema.json",
   "schemas/ocf/v0.3.0/course.schema.json",
-  "schemas/opf/v0.2.0/set.schema.json",
-  "schemas/oqf/v0.1.0/question.schema.json",
-  "schemas/oqf/v0.1.0/stimulus.schema.json",
+  "schemas/opf/v0.3.0/set.schema.json",
+  "schemas/oqf/v0.2.0/question.schema.json",
+  "schemas/oqf/v0.2.0/stimulus.schema.json",
   "schemas/orf/v0.1.0/resource.schema.json",
   "schemas/ovf/v0.1.0/video.schema.json",
 ];

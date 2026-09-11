@@ -1,7 +1,7 @@
 import type { OqfQuestion } from "@inklyre/oes-core";
 
 /** The OQF version a compiled document is stamped with when frontmatter omits one. */
-export const DEFAULT_OQF_VERSION = "0.1.0";
+export const DEFAULT_OQF_VERSION = "0.2.0";
 
 /** Canonical home of the published schemas — the base of the generated `$schema` URL. */
 export const DEFAULT_SCHEMA_BASE = "https://oes.inklyre.org/schemas";
