@@ -30,6 +30,20 @@ schedule and publishes a new patch of `@inklyre/oes-schemas` when its
 schema content changes. `packages/core` depends on it like a normal npm
 package. See `packages/schemas`'s own README for the full mechanism.
 
+## Building against a spec branch
+
+`@inklyre/oes-schemas` vendors its schemas from `inklyre/oes@main`. When a
+schema change is still on a branch, point every build at it:
+
+```bash
+OES_SPEC_REF=dev npm run build --workspaces
+OES_SPEC_REF=dev npm run test --workspaces
+```
+
+Without this, a schema change on a branch cannot be built against until it
+merges — which blocks the toolchain on the very merge the change is meant
+to justify.
+
 ## Getting started
 
 ```bash

@@ -57,7 +57,15 @@ doesn't attempt on its own:
   a module's `lessons`, a lesson's `articles`/`video_lessons`/`practice_sets`,
   a set's `questions`, a pool's `from`, and every question type's own
   id-bearing array (`options`, `left`/`right`, `items`, `blanks`,
-  `test_cases`, `labels`).
+  `test_cases`, `labels`) — including ids buried inside multi-part group
+  `parts`, which must be unique across the whole set rather than just
+  among siblings.
+- **Multi-part group structure** — `answer_any` exceeding the number of
+  parts (error); a single-part group, nesting past two levels, and parts
+  of one group referencing **different stimuli** (warnings). That last
+  one matters because a group's shared stem lives on each part's own
+  question rather than on the group, so a mismatch is invisible in
+  `set.json` and easy to introduce by copying a part.
 - **Pool `select` bounds** — a pool's `select` must be between 1 and
   `from.length`; not expressible in JSON Schema since it relates two
   sibling fields.

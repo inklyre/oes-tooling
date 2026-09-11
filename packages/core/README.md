@@ -12,8 +12,8 @@ npm install @inklyre/oes-core
 
 ## What this does
 
-- **Types** — hand-written TypeScript types for all 5 specs (OCF, OPF, OQF,
-  OAF, OVF), kept honest against the real JSON Schemas by a test suite that
+- **Types** — hand-written TypeScript types for all 7 specs (OCF, OPF,
+  OQF, OAF, OVF, ORF, OPK), kept honest against the real JSON Schemas by a test suite that
   runs every fixture in this repo's `conformance/` through this package's
   own validator (`test/conformance.test.ts`) — a schema change with no
   matching type update fails that suite.
@@ -26,6 +26,16 @@ npm install @inklyre/oes-core
   fetched content along the way — a mismatch is reported the same way a
   dangling reference is, via `ResolveError`, without failing the rest of
   the tree.
+- **Prose is inlined.** After resolution, `statement`, an article's
+  `content`, and a stimulus's `content` are **always strings**, never
+  `{file: …}` references — so a consumer never fetches prose itself.
+  Without this every consumer re-implements prose fetching, which is an
+  N+1 fetch per question for any renderer. A `{file}` reference carrying
+  a `content_hash` is verified here; that is the only place a separate
+  prose file's bytes can be checked at all.
+- **Multi-part groups are walked.** `resolveSet` descends into an OPF
+  group entry's `parts`, so a consumer that ignores grouping still sees
+  every part exactly once, in document order.
 
 ## Usage
 
