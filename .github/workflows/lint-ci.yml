@@ -5,14 +5,20 @@ on:
     branches: [main]
     paths:
       - "packages/lint/**"
+      - "packages/authoring/**"
       - "packages/core/**"
       - "packages/import-youtube/**"
+      - "packages/schemas/**"
+      - "scripts/build-workspaces.mjs"
       - ".github/workflows/lint-ci.yml"
   pull_request:
     paths:
       - "packages/lint/**"
+      - "packages/authoring/**"
       - "packages/core/**"
       - "packages/import-youtube/**"
+      - "packages/schemas/**"
+      - "scripts/build-workspaces.mjs"
       - ".github/workflows/lint-ci.yml"
 
 jobs:
@@ -28,11 +34,8 @@ jobs:
 
       - run: npm ci
 
-      - name: Build @inklyre/oes-core
-        run: npm run build --workspace @inklyre/oes-core
-
-      - name: Build @inklyre/oes-import-youtube
-        run: npm run build --workspace @inklyre/oes-import-youtube
+      - name: Build workspace dependencies, in dependency order
+        run: npm run build:deps-of -- @inklyre/oes-lint
 
       - name: Typecheck
         run: npm run typecheck --workspace @inklyre/oes-lint

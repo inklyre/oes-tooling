@@ -7,5 +7,9 @@
   "workspaces": [
     "packages/*"
   ],
+  "scripts": {
+    "build": "node scripts/build-workspaces.mjs",
+    "build:deps-of": "node scripts/build-workspaces.mjs --deps-of"
+  },
   "license": "Apache-2.0"
 }

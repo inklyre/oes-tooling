@@ -6,11 +6,15 @@ on:
     paths:
       - "packages/import-youtube/**"
       - "packages/core/**"
+      - "packages/schemas/**"
+      - "scripts/build-workspaces.mjs"
       - ".github/workflows/import-youtube-ci.yml"
   pull_request:
     paths:
       - "packages/import-youtube/**"
       - "packages/core/**"
+      - "packages/schemas/**"
+      - "scripts/build-workspaces.mjs"
       - ".github/workflows/import-youtube-ci.yml"
 
 jobs:
@@ -26,8 +30,8 @@ jobs:
 
       - run: npm ci
 
-      - name: Build @inklyre/oes-core
-        run: npm run build --workspace @inklyre/oes-core
+      - name: Build workspace dependencies, in dependency order
+        run: npm run build:deps-of -- @inklyre/oes-import-youtube
 
       - name: Typecheck
         run: npm run typecheck --workspace @inklyre/oes-import-youtube

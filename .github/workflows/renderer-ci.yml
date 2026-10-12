@@ -6,11 +6,15 @@ on:
     paths:
       - "packages/renderer/**"
       - "packages/core/**"
+      - "packages/schemas/**"
+      - "scripts/build-workspaces.mjs"
       - ".github/workflows/renderer-ci.yml"
   pull_request:
     paths:
       - "packages/renderer/**"
       - "packages/core/**"
+      - "packages/schemas/**"
+      - "scripts/build-workspaces.mjs"
       - ".github/workflows/renderer-ci.yml"
 
 jobs:
@@ -26,8 +30,8 @@ jobs:
 
       - run: npm ci
 
-      - name: Build @inklyre/oes-core
-        run: npm run build --workspace @inklyre/oes-core
+      - name: Build workspace dependencies, in dependency order
+        run: npm run build:deps-of -- @inklyre/oes-renderer
 
       - name: Typecheck
         run: npm run typecheck --workspace @inklyre/oes-renderer

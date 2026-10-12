@@ -36,7 +36,7 @@ package. See `packages/schemas`'s own README for the full mechanism.
 schema change is still on a branch, point every build at it:
 
 ```bash
-OES_SPEC_REF=dev npm run build --workspaces
+OES_SPEC_REF=dev npm run build
 OES_SPEC_REF=dev npm run test --workspaces
 ```
 
@@ -48,9 +48,14 @@ to justify.
 
 ```bash
 npm install
-npm run build --workspaces
+npm run build
 npm run test --workspaces
 ```
+
+Use `npm run build`, not `npm run build --workspaces`: packages here depend
+on each other through the workspace, and `--workspaces` builds them in
+directory order, so on a fresh clone `authoring` builds before the `core`
+it imports and fails. `npm run build` builds in dependency order.
 
 ## CLI
 
